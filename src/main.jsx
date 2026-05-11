@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ChevronLeft, ChevronRight, FileText, Printer, Save, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { DOC_PARAGRAPHS } from './programData.js';
@@ -24,7 +24,7 @@ const PROGRAM_OPTIONS = [
 const STEPS = [
   { id: 'start', title: 'Dane programu' },
   { id: 'basis', title: 'Podstawa i poziom' },
-  { id: 'series', title: 'Seria NGL' },
+  { id: 'series', title: 'Założenia metodyczne' },
   { id: 'methods', title: 'Metody uzupełniające' },
   { id: 'materials', title: 'Materiały dydaktyczne' },
   { id: 'exam', title: 'Egzamin i podgląd' },
@@ -104,7 +104,7 @@ const VARIANT_RANGES = [
   { start: 702, end: 707, ids: ['22'] },
   { start: 707, end: 713, ids: ['23'] },
   { start: 713, end: 718, ids: ['24'] },
-  { start: 718, end: 725, ids: ['25'] },
+  { start: 718, end: 724, ids: ['25'] },
   { start: 848, end: 872, ids: ['9'] },
   { start: 872, end: 874, ids: ['7', '8'] },
   { start: 874, end: 876, ids: ['7', '9'] },
@@ -121,6 +121,39 @@ function selectedVariantIds(form) {
   form.materials.forEach((id) => ids.add(id));
   if (form.exam) ids.add('26');
   return ids;
+}
+
+
+const STEP_VARIANT_IDS = {
+  basis: ['5', '6'],
+  series: ['7', '8', '9', '10'],
+  methods: ['11', '12', '13', '14', '15'],
+  materials: ['16', '17', '18', '19', '20', '21', '22', '23', '24', '25'],
+  exam: ['26'],
+};
+
+function stepForVariantIds(ids) {
+  for (const [stepId, stepIds] of Object.entries(STEP_VARIANT_IDS)) {
+    if (ids.some((id) => stepIds.includes(id))) return stepId;
+  }
+  return '';
+}
+
+function paragraphVariantInfo(index, form) {
+  const selected = selectedVariantIds(form);
+  const activeIds = [];
+  for (const range of VARIANT_RANGES) {
+    if (index > range.start && index < range.end) {
+      for (const id of range.ids) {
+        if (selected.has(id) && !activeIds.includes(id)) activeIds.push(id);
+      }
+    }
+  }
+  if (!activeIds.length) return null;
+  return {
+    ids: activeIds,
+    step: stepForVariantIds(activeIds),
+  };
 }
 
 function shouldShowParagraph(index, form) {
@@ -150,7 +183,58 @@ function adaptText(text, form) {
   return text;
 }
 
+
+function renumberVariantHeading(text, index, form) {
+  const methodRanges = [
+    { id: '11', start: 616, end: 619 },
+    { id: '12', start: 619, end: 622 },
+    { id: '13', start: 622, end: 625 },
+    { id: '14', start: 625, end: 628 },
+    { id: '15', start: 628, end: 632 },
+  ];
+
+  const materialRanges = [
+    { id: '16', start: 650, end: 654 },
+    { id: '17', start: 654, end: 659 },
+    { id: '18', start: 659, end: 665 },
+    { id: '19', start: 665, end: 692 },
+    { id: '20', start: 692, end: 697 },
+    { id: '21', start: 697, end: 702 },
+    { id: '22', start: 702, end: 707 },
+    { id: '23', start: 707, end: 713 },
+    { id: '24', start: 713, end: 718 },
+    { id: '25', start: 718, end: 725 },
+  ];
+
+  const methodMatch = methodRanges.find((r) => index > r.start && index < r.end);
+  if (methodMatch && /^VI\.1\.\d+\./.test(text)) {
+    const selectedMethods = methodRanges.filter((r) => form.methods.includes(r.id));
+    const position = selectedMethods.findIndex((r) => r.id === methodMatch.id);
+
+    if (position !== -1) {
+      const newNumber = `VI.1.${4 + position}.`;
+      return text.replace(/^VI\.1\.\d+\./, newNumber);
+    }
+  }
+
+  const materialMatch = materialRanges.find((r) => index > r.start && index < r.end);
+  if (materialMatch && /^VI\.3\.\d+\./.test(text)) {
+    const selectedMaterials = materialRanges.filter((r) => form.materials.includes(r.id));
+    const position = selectedMaterials.findIndex((r) => r.id === materialMatch.id);
+
+    if (position !== -1) {
+      const newNumber = `VI.3.${2 + position}.`;
+      return text.replace(/^VI\.3\.\d+\./, newNumber);
+    }
+  }
+
+  return text;
+}
+
+
+
 function paragraphKind(text) {
+  if (text.trim() === 'Bibliografia') return 'h2';
   if (/^[IVX]+\.\s/.test(text) || /^[IVX]+\.$/.test(text)) return 'h2';
   if (/^[IVX]+\.\d+\.\s/.test(text) || /^[IVX]+\.\d+\./.test(text)) return 'h3';
   if (/^[IVX]+\.\d+\.\d+\./.test(text)) return 'h4';
@@ -159,13 +243,16 @@ function paragraphKind(text) {
   return 'p';
 }
 
-function renderParagraph(text, index) {
+function renderParagraph(text, index, extraProps = {}) {
   const kind = paragraphKind(text);
-  if (kind === 'h2') return <h2 key={index}>{text}</h2>;
-  if (kind === 'h3') return <h3 key={index}>{text}</h3>;
-  if (kind === 'h4') return <h4 key={index}>{text}</h4>;
-  if (kind === 'li') return <p key={index} className="bullet">{text.replace(/^·\s*/, '')}</p>;
-  return <p key={index}>{text}</p>;
+  const className = [extraProps.className, kind === 'li' ? 'bullet' : ''].filter(Boolean).join(' ');
+  const props = { ...extraProps, key: index, className: className || undefined };
+
+  if (kind === 'h2') return <h2 {...props}>{text}</h2>;
+  if (kind === 'h3') return <h3 {...props}>{text}</h3>;
+  if (kind === 'h4') return <h4 {...props}>{text}</h4>;
+  if (kind === 'li') return <p {...props}>{text.replace(/^·\s*/, '')}</p>;
+  return <p {...props}>{text}</p>;
 }
 
 function ChoiceCard({ active, title, subtitle, onClick, multi = false }) {
@@ -182,6 +269,7 @@ function ChoiceCard({ active, title, subtitle, onClick, multi = false }) {
 
 function App() {
   const [step, setStep] = useState(0);
+  const previewRef = useRef(null);
   const [form, setForm] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem('kreator-programu-angielski') || 'null') || DEFAULT_FORM;
@@ -190,12 +278,30 @@ function App() {
     }
   });
 
+
+  useEffect(() => {
+    const root = previewRef.current;
+    if (!root) return;
+
+    const stepId = STEPS[step].id;
+    const selector = stepId === 'start' ? '.titlePage' : `[data-step-target="${stepId}"]`;
+    const target = root.querySelector(selector);
+
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    }
+  }, [step, form.level, form.series, form.methods.join(','), form.materials.join(','), form.exam]);
+
   const program = PROGRAM_OPTIONS.find((p) => p.id === form.programType) || PROGRAM_OPTIONS[1];
   const printableParagraphs = useMemo(() => {
-    return DOC_PARAGRAPHS
-      .map((text, index) => ({ text: adaptText(text, form), index }))
-      .filter(({ index }) => shouldShowParagraph(index, form));
-  }, [form]);
+  return DOC_PARAGRAPHS
+    .map((text, index) => {
+      const adapted = adaptText(text, form);
+      const renumbered = renumberVariantHeading(adapted, index, form);
+      return { text: renumbered, index };
+    })
+    .filter(({ index }) => shouldShowParagraph(index, form));
+}, [form]);
 
   const save = () => {
     localStorage.setItem('kreator-programu-angielski', JSON.stringify(form));
@@ -255,11 +361,11 @@ function App() {
 
             {STEPS[step].id === 'exam' && <div className="choices"><ChoiceCard multi active={form.exam} title="#26 Przygotowanie do egzaminu ósmoklasisty" subtitle="Po odznaczeniu rozdział VI.6 nie zostanie dodany do PDF." onClick={() => setForm({ ...form, exam: !form.exam })} /><div className="notice"><strong>Gotowe.</strong> Sprawdź podgląd po prawej stronie. Aby zapisać PDF, kliknij „PDF / druk”, a następnie wybierz „Zapisz jako PDF”.</div></div>}
 
-            <div className="navbuttons"><button className="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}><ChevronLeft size={16}/>Wstecz</button><button disabled={step === STEPS.length - 1} onClick={() => setStep(step + 1)}>Dalej<ChevronRight size={16}/></button></div>
+            <div className="navbuttons"><button className="secondary" disabled={step === 0} onClick={() => setStep((current) => current - 1)}><ChevronLeft size={16}/>Wstecz</button><button disabled={step === STEPS.length - 1} onClick={() => setStep((current) => current + 1)}>Dalej<ChevronRight size={16}/></button></div>
           </div>
         </section>
 
-        <section className="preview">
+        <section className="preview" ref={previewRef}>
           <article className="paper">
             <section className="titlePage">
               <h1>{program.title}</h1>
@@ -268,7 +374,17 @@ function App() {
               {(form.city || form.year) && <p>{[form.city, form.year].filter(Boolean).join(', ')}</p>}
             </section>
             <section className="docBody">
-              {printableParagraphs.map(({ text, index }) => renderParagraph(text, index))}
+              {printableParagraphs.map(({ text, index }) => {
+                const info = paragraphVariantInfo(index, form);
+                const props = info
+                  ? {
+                      className: 'variantHighlight',
+                      'data-variant-ids': info.ids.join(','),
+                      'data-step-target': info.step || undefined,
+                    }
+                  : {};
+                return renderParagraph(text, index, props);
+              })}
             </section>
           </article>
         </section>
