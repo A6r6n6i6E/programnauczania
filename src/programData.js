@@ -723,6 +723,7 @@ export const DOC_PARAGRAPHS = [
   "Do materiałów dla nauczyciela należą w szczególności przewodnik metodyczny (Teacher’s Book), scenariusze lekcji, materiały do kopiowania, testy, klucze odpowiedzi, transkrypcje nagrań, bank dodatkowych aktywności oraz komentarze metodyczne wspierające planowanie pracy z grupą o zróżnicowanych potrzebach. Materiały te porządkują proces dydaktyczny, ułatwiają organizację pracy i wspierają nauczyciela w podejmowaniu świadomych decyzji metodycznych.",
   "Nauczyciel wykorzystuje materiały metodyczne jako wsparcie planowania, różnicowania pracy, monitorowania postępów uczniów oraz dostosowywania przebiegu lekcji do potrzeb grupy. Materiały te nie pełnią funkcji gotowego scenariusza do mechanicznej realizacji, lecz stanowią narzędzie wspierające świadome, elastyczne i celowe prowadzenie procesu dydaktycznego.",
   "Istotnym elementem wsparcia nauczyciela są również materiały szkoleniowe i instruktażowe, w tym webinary, nagrania metodyczne oraz materiały wdrożeniowe wspierające efektywne wykorzystanie podręcznika i komponentów cyfrowych. Ułatwiają one nauczycielowi pełniejsze wykorzystanie zasobów programu oraz wspierają jego rozwój metodyczny i organizacyjny.",
+  
   "VI.4. Techniki pracy",
   "[AUTO]",
   "Techniki pracy stanowią praktyczny wymiar realizacji programu i przekładają założenia metodyczne na konkretne działania podejmowane podczas lekcji. To one porządkują sposób pracy z materiałem, wyznaczają przebieg aktywności oraz wspierają ucznia na kolejnych etapach uczenia się.",

@@ -62,3 +62,45 @@ input { width: 100%; border: 1px solid var(--border); border-radius: 14px; paddi
   .docBody h2 { break-after: avoid; }
   .docBody h3, .docBody h4 { break-after: avoid; }
 }
+
+/* Podglad i panel wyboru pozostaja widoczne podczas pracy na duzych ekranach. */
+@media (min-width: 1201px) {
+  .wizard {
+    position: sticky;
+    top: 92px;
+    max-height: calc(100vh - 112px);
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .wizard .panel {
+    position: static;
+  }
+  .preview {
+    position: sticky;
+    top: 92px;
+    height: calc(100vh - 112px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+    padding: 0 8px 40px 0;
+  }
+}
+
+.variantHighlight {
+  background: #fff3a3;
+  box-shadow: 0 0 0 3px #fff3a3;
+  border-radius: 4px;
+  transition: background .2s ease, box-shadow .2s ease;
+}
+
+.variantHighlight[data-step-target] {
+  scroll-margin-top: 18px;
+}
+
+@media print {
+  .variantHighlight {
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
