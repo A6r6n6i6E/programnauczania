@@ -51,10 +51,10 @@ button.secondary { background: white; color: var(--accent); border: 1px solid va
 }
 .sidebarBrand img {
   display: block;
-  width: 148px;
+  width: 175px;
   max-width: 100%;
   height: auto;
-  margin: 0 0 12px;
+  margin: 0 auto 12px;
 }
 .sidebarBrand h2 {
   margin: 0;
