@@ -51,7 +51,7 @@ button.secondary { background: white; color: var(--accent); border: 1px solid va
 }
 .sidebarBrand img {
   display: block;
-  width: 175px;
+  width: 210px;
   max-width: 100%;
   height: auto;
   margin: 0 auto 12px;
