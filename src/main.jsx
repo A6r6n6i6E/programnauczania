@@ -760,6 +760,10 @@ function App() {
           </div>
         </section>
 
+        <div className="leftColumnsCopyright noPrint">
+          © Copyright by Nowa Era Sp. z o.o./Sanoma
+        </div>
+
         <section className="previewShell">
           <div className="previewHeader noPrint">
             <div className="previewTitle"><FileText size={18}/><strong>{doc.foundation} · klasy {doc.stageGroup === 'I' ? '1–3' : '4–8'}</strong></div>
