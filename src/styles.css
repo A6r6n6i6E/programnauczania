@@ -6,7 +6,7 @@
   --muted: #667085;
   --border: #dbe3ef;
   --accent: #14233b;
-  --accent2: #244b8f;
+  --accent2: #000000;
   --soft: #f5f8fc;
   --green: #a9cf00;
 }
@@ -86,7 +86,7 @@ button.secondary { background: white; color: var(--accent); border: 1px solid va
   text-align: left;
 }
 .stepNav button.current {
-  background: #0f172a;
+  background: #000000;
   color: white;
   font-weight: 500;
 }
@@ -105,7 +105,7 @@ button.secondary { background: white; color: var(--accent); border: 1px solid va
 }
 .stepNav button.current .stepNumber {
   background: white;
-  color: #0f172a;
+  color: #000000;
 }
 .sidebarActions {
   margin-top: auto;
@@ -243,7 +243,7 @@ input {
   height: 36px;
   border-radius: 14px;
   padding: 8px 13px;
-  background: #17427f;
+  background: #000000;
 }
 .preview {
   min-height: 0;

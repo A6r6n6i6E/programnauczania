@@ -11,7 +11,6 @@ const STEPS = [
   { id: 'methods', title: 'Metody' },
   { id: 'materials', title: 'Materiały' },
   { id: 'exam', title: 'Egzamin / ESOKJ' },
-  { id: 'preview', title: 'Podgląd' },
 ];
 
 const ESOKJ_LABELS = {
@@ -655,6 +654,29 @@ function App() {
       localStorage.removeItem('kreator-programu-angielski');
     }
   };
+  
+  const handlePrint = async () => {
+  try {
+    await fetch('/api/save-print', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        teacherName: form.teacherName,
+        schoolName: form.schoolName,
+        city: form.city,
+        year: form.year,
+        stageGroup: form.stageGroup,
+        foundation: form.foundation,
+      }),
+    });
+  } catch (error) {
+    console.warn('Nie udało się zapisać danych przed drukiem.', error);
+  }
+
+  window.print();
+};
 
   const setStage = (stageGroup) => {
     setForm((prev) => ({ ...prev, stageGroup }));
@@ -726,14 +748,14 @@ function App() {
               <div className="notice"><strong>Wybrany podprogram:</strong> {doc.label} · {doc.stage}</div>
             </div>}
 
-            {STEPS[step].id === 'series' && <div className="choices"><p>Wybierz jedną serię. Do dokumentu trafią tylko pasujące fragmenty wariantowe z wybranego pliku.</p>{seriesOptions.map((v) => <ChoiceCard key={v.id} active={form.series === v.id} title={v.title} subtitle={v.subtitle} onClick={() => setForm({ ...form, series: v.id })} />)}</div>}
+            {STEPS[step].id === 'series' && <div className="choices"><p>Wybierz jedną serię. Do dokumentu trafią tylko pasujące fragmenty wariantowe.</p>{seriesOptions.map((v) => <ChoiceCard key={v.id} active={form.series === v.id} title={v.title} subtitle={v.subtitle} onClick={() => setForm({ ...form, series: v.id })} />)}</div>}
 
-            {STEPS[step].id === 'methods' && <div className="choices"><p>Zaznacz metody uzupełniające, które nauczyciel chce uwzględnić.</p>{methodOptions.map((v) => <ChoiceCard key={v.id} multi active={currentMethods.includes(v.id)} title={v.title} subtitle={v.subtitle} onClick={() => toggleArray('methodsByDoc', v.id)} />)}</div>}
+            {STEPS[step].id === 'methods' && <div className="choices"><p>Zaznacz metody uzupełniające, które chcesz uwzględnić.</p>{methodOptions.map((v) => <ChoiceCard key={v.id} multi active={currentMethods.includes(v.id)} title={v.title} subtitle={v.subtitle} onClick={() => toggleArray('methodsByDoc', v.id)} />)}</div>}
 
             {STEPS[step].id === 'materials' && <div className="choices"><p>Zaznacz materiały i środki dydaktyczne, które mają pojawić się w programie.</p>{materialOptions.map((v) => <ChoiceCard key={v.id} multi active={currentMaterials.includes(v.id)} title={v.title} subtitle={v.subtitle} onClick={() => toggleArray('materialsByDoc', v.id)} />)}</div>}
 
             {STEPS[step].id === 'exam' && <div className="choices">
-              {doc.examId ? <ChoiceCard multi active={examEnabled} title="#26 Przygotowanie do egzaminu ósmoklasisty" subtitle="Po odznaczeniu rozdział egzaminacyjny nie zostanie dodany do PDF." onClick={() => setForm({ ...form, examByDoc: { ...(form.examByDoc || {}), [doc.id]: !examEnabled } })} /> : <div className="notice">Dla klas I–III krok egzaminacyjny nie jest potrzebny, dlatego nie dodaję sekcji egzaminu ósmoklasisty.</div>}
+              {doc.examId ? <ChoiceCard multi active={examEnabled} title="#26 Przygotowanie do egzaminu ósmoklasisty" subtitle="Po odznaczeniu rozdział egzaminacyjny nie zostanie dodany do PDF." onClick={() => setForm({ ...form, examByDoc: { ...(form.examByDoc || {}), [doc.id]: !examEnabled } })} /> : <div className="notice">Dla klas I–III krok egzaminacyjny nie jest przewidziany.</div>}
 
               {doc.esokjIds?.length > 0 && <>
                 <p><strong>Poziom odniesienia ESOKJ.</strong> Wybierz tabelę deskryptorów osiągnięć, która ma znaleźć się w dokumencie.</p>
@@ -784,7 +806,9 @@ function App() {
               <button className="secondary compactButton" aria-label="Pomniejsz podgląd" onClick={() => setPreviewZoom((value) => Math.max(0.55, +(value - 0.1).toFixed(2)))}><ZoomOut size={15}/></button>
               <span>{Math.round(previewZoom * 100)}%</span>
               <button className="secondary compactButton" aria-label="Powiększ podgląd" onClick={() => setPreviewZoom((value) => Math.min(1.4, +(value + 0.1).toFixed(2)))}><ZoomIn size={15}/></button>
-              <button onClick={() => window.print()} className="printButton"><Printer size={16}/>PDF / druk</button>
+              <button onClick={handlePrint} className="printButton">
+  <Printer size={16}/>PDF / druk
+</button>
             </div>
           </div>
           <div className="preview" ref={previewRef}>
