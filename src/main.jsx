@@ -429,7 +429,9 @@ function renderDocumentItems(items, form, doc) {
     nodes.push(
       <ul className="bulletList" key={`bullets-${bulletBuffer[0].index}`}>
         {bulletBuffer.map(({ text, index, props }) => (
-          <li key={`${doc.id}-${index}`} {...props}>{plainTextForListItem(text)}</li>
+          <li key={`${doc.id}-${index}`} {...props}>
+  {fixPolishWidows(plainTextForListItem(text))}
+</li>
         ))}
       </ul>
     );
@@ -513,15 +515,26 @@ if (
   return nodes;
 }
 
+function fixPolishWidows(text) {
+  return text.replace(
+    /(^|[\s(„"'])((?:[aiouwzAIUOWZ]|do|od|na|po|we|ze|za|ku|Do|Od|Na|Po|We|Ze|Za|Ku))\s+/g,
+    '$1$2\u00A0'
+  );
+}
+
 function renderParagraph(text, index, extraProps = {}) {
   const kind = paragraphKind(text);
   const className = [extraProps.className, kind === 'li' ? 'bullet' : ''].filter(Boolean).join(' ');
   const props = { ...extraProps, key: index, className: className || undefined };
-  if (kind === 'h2') return <h2 {...props}>{text}</h2>;
-  if (kind === 'h3') return <h3 {...props}>{text}</h3>;
-  if (kind === 'h4') return <h4 {...props}>{text}</h4>;
-  if (kind === 'li') return <p {...props}>{text.replace(/^[·•]\s*/, '')}</p>;
-  return <p {...props}>{text}</p>;
+
+  const fixedText = fixPolishWidows(text);
+
+  if (kind === 'h2') return <h2 {...props}>{fixedText}</h2>;
+  if (kind === 'h3') return <h3 {...props}>{fixedText}</h3>;
+  if (kind === 'h4') return <h4 {...props}>{fixedText}</h4>;
+  if (kind === 'li') return <p {...props}>{fixPolishWidows(text.replace(/^[·•]\s*/, ''))}</p>;
+
+  return <p {...props}>{fixedText}</p>;
 }
 
 function ChoiceCard({ active, title, subtitle, onClick, multi = false, disabled = false }) {
@@ -776,15 +789,26 @@ function App() {
           </div>
           <div className="preview" ref={previewRef}>
           <article className="paper" ref={paperRef} style={{ zoom: previewZoom }}>
-            <section className="titlePage">
-              <div className="titlePageMain">
-                <h1>{doc.title}</h1>
-                <p className="authorsLine">
-                  Autorzy: {form.teacherName ? `${form.teacherName}${form.schoolName ? ` (${form.schoolName})` : ''}` : '____________________'}, Aleksandra Marchwian (National Geographic Learning)
-                </p>
-              </div>
-              {(form.city || form.year) && <p className="titlePageFooter">{[form.city, form.year].filter(Boolean).join(', ')}</p>}
-            </section>
+         <section className="titlePage">
+  <div className="titlePageMain">
+    <h1>{doc.title}</h1>
+    <p className="authorsLine">
+      Autorzy: {form.teacherName ? `${form.teacherName}${form.schoolName ? ` (${form.schoolName})` : ''}` : '____________________'}, Aleksandra Marchwian (National Geographic Learning)
+    </p>
+  </div>
+
+  <div className="titlePageFooterBlock">
+    {(form.city || form.year) && (
+      <p className="titlePageFooter">
+        {[form.city, form.year].filter(Boolean).join(', ')}
+      </p>
+    )}
+
+    <p className="titlePageCopyright">
+      © Copyright by Nowa Era Sp. z o.o./Sanoma
+    </p>
+  </div>
+</section>
             {showBody && <section className="tocPage">
               <h2>Spis treści</h2>
               <ol className="tocList">
